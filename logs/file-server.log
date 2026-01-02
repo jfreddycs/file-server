@@ -1,0 +1,38 @@
+2026-01-02 17:08:57 [main] INFO  c.s.f.FileServer2Application - Starting FileServer2Application using Java 17.0.17 with PID 12352 (C:\Users\fredd\Documents\projects\workspace-swift\files\file-server2\target\classes started by fredd in C:\Users\fredd\Documents\projects\workspace-swift\files\file-server2)
+2026-01-02 17:08:57 [main] INFO  c.s.f.FileServer2Application - No active profile set, falling back to 1 default profile: "default"
+2026-01-02 17:08:58 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+2026-01-02 17:08:58 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-01-02 17:08:58 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.50]
+2026-01-02 17:08:58 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2026-01-02 17:08:58 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1472 ms
+2026-01-02 17:08:58 [main] INFO  c.s.f.service.FileStorageService - File upload directory created: C:\Users\fredd\Documents\projects\workspace-swift\files\file-server2\uploads
+2026-01-02 17:08:59 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 3 endpoints beneath base path '/actuator'
+2026-01-02 17:08:59 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path '/'
+2026-01-02 17:08:59 [main] INFO  c.s.f.FileServer2Application - Started FileServer2Application in 2.962 seconds (process running for 3.861)
+2026-01-02 17:09:00 [RMI TCP Connection(4)-192.168.247.1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-01-02 17:09:00 [RMI TCP Connection(4)-192.168.247.1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-01-02 17:09:00 [RMI TCP Connection(4)-192.168.247.1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2026-01-02 17:09:04 [SpringApplicationShutdownHook] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2026-01-02 17:09:04 [tomcat-shutdown] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Graceful shutdown complete
+2026-01-02 17:14:08 [main] INFO  c.s.f.FileServer2Application - Starting FileServer2Application using Java 17.0.17 with PID 21712 (C:\Users\fredd\Documents\projects\workspace-swift\files\file-server2\target\classes started by fredd in C:\Users\fredd\Documents\projects\workspace-swift\files\file-server2)
+2026-01-02 17:14:08 [main] INFO  c.s.f.FileServer2Application - No active profile set, falling back to 1 default profile: "default"
+2026-01-02 17:14:10 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+2026-01-02 17:14:10 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-01-02 17:14:10 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.50]
+2026-01-02 17:14:10 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2026-01-02 17:14:10 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1354 ms
+2026-01-02 17:14:10 [main] INFO  c.s.f.service.FileStorageService - File upload directory created: C:\Users\fredd\Documents\projects\workspace-swift\files\file-server2\uploads
+2026-01-02 17:14:11 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 3 endpoints beneath base path '/actuator'
+2026-01-02 17:14:11 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path '/'
+2026-01-02 17:14:11 [main] INFO  c.s.f.FileServer2Application - Started FileServer2Application in 3.082 seconds (process running for 3.854)
+2026-01-02 17:14:11 [RMI TCP Connection(3)-192.168.247.1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-01-02 17:14:11 [RMI TCP Connection(3)-192.168.247.1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-01-02 17:14:11 [RMI TCP Connection(3)-192.168.247.1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+2026-01-02 17:14:28 [http-nio-8080-exec-1] INFO  c.s.f.c.FileUploadController - Received file upload request: upload_2137096707727874800.zip (Size: 7198337 bytes)
+2026-01-02 17:14:28 [http-nio-8080-exec-1] INFO  c.s.f.service.FileStorageService - File stored successfully: file_20260102_171428_3a0c8f18.zip (Original: upload_2137096707727874800.zip)
+2026-01-02 17:14:28 [http-nio-8080-exec-1] INFO  c.s.f.c.FileUploadController - File uploaded successfully: file_20260102_171428_3a0c8f18.zip
+2026-01-02 17:15:54 [http-nio-8080-exec-5] INFO  c.s.f.c.FileUploadController - Received file upload request: package.json (Size: 7045 bytes)
+2026-01-02 17:15:54 [http-nio-8080-exec-5] INFO  c.s.f.service.FileStorageService - File stored successfully: file_20260102_171554_0f2cb98a.json (Original: package.json)
+2026-01-02 17:15:54 [http-nio-8080-exec-5] INFO  c.s.f.c.FileUploadController - File uploaded successfully: file_20260102_171554_0f2cb98a.json
+2026-01-02 17:17:16 [SpringApplicationShutdownHook] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2026-01-02 17:17:16 [tomcat-shutdown] INFO  o.s.b.w.e.tomcat.GracefulShutdown - Graceful shutdown complete
