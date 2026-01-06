@@ -1,0 +1,232 @@
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>1.28.0</version>
+    </dependency>
+    <dependency>
+        <groupId>net.lingala.zip4j</groupId>
+        <artifactId>zip4j</artifactId>
+        <version>2.11.5</version>
+    </dependency>
+    <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
+    </dependency>
+</dependencies>
+
+
+1. The Validation & ZIP Service
+This service follows best practices by using try-with-resources for memory safety and Jackson for syntax validation of JSON/YAML content.
+
+Java
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.model.ZipParameters;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+
+@Service
+public class ZipProcessingService {
+
+    private final ObjectMapper jsonMapper = new ObjectMapper();
+    private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
+
+    /**
+     * Validates if a ZIP contains only valid JSON or YAML files.
+     */
+    public Map<String, String> validateZipContent(MultipartFile file) throws IOException {
+        Map<String, String> report = new LinkedHashMap<>();
+
+        try (InputStream is = file.getInputStream();
+             org.apache.commons.compress.archivers.zip.ZipArchiveInputStream zis =
+                     new org.apache.commons.compress.archivers.zip.ZipArchiveInputStream(is)) {
+
+            ZipArchiveEntry entry;
+            while ((entry = zis.getNextZipEntry()) != null) {
+                if (entry.isDirectory()) continue;
+
+                String name = entry.getName();
+                byte[] content = zis.readAllBytes();
+
+                if (name.endsWith(".json")) {
+                    validateSyntax(name, content, jsonMapper, report);
+                } else if (name.endsWith(".yml") || name.endsWith(".yaml")) {
+                    validateSyntax(name, content, yamlMapper, report);
+                } else {
+                    report.put(name, "SKIPPED: Not a JSON/YAML file");
+                }
+            }
+        }
+        return report;
+    }
+
+    private void validateSyntax(String name, byte[] content, ObjectMapper mapper, Map<String, String> report) {
+        try {
+            mapper.readTree(content);
+            report.put(name, "VALID");
+        } catch (IOException e) {
+            report.put(name, "INVALID: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Create ZIP using Apache Commons Compress (Stream-based)
+     */
+    public File createZipWithApache(List<File> files) throws IOException {
+        File zipFile = File.createTempFile("apache_", ".zip");
+        try (ZipArchiveOutputStream zos = new ZipArchiveOutputStream(zipFile)) {
+            for (File f : files) {
+                ZipArchiveEntry entry = new ZipArchiveEntry(f, f.getName());
+                zos.putArchiveEntry(entry);
+                Files.copy(f.toPath(), zos);
+                zos.closeArchiveEntry();
+            }
+        }
+        return zipFile;
+    }
+
+    /**
+     * Create ZIP using Zip4j (Object-based, supports passwords)
+     */
+    public File createZipWithZip4j(List<File> files) throws IOException {
+        File zipFile = File.createTempFile("zip4j_", ".zip");
+        // Zip4j handles its own file streams internally
+        try (ZipFile zFile = new ZipFile(zipFile)) {
+            ZipParameters params = new ZipParameters();
+            params.setIncludeRootFolder(false);
+            zFile.addFiles(files, params);
+        }
+        return zipFile;
+    }
+}
+2. The REST Controller
+This provides endpoints to upload a ZIP for validation or trigger the creation of a test ZIP.
+
+Java
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/zip")
+public class ZipController {
+
+    private final ZipProcessingService zipService;
+
+    public ZipController(ZipProcessingService zipService) {
+        this.zipService = zipService;
+    }
+
+    @PostMapping("/validate")
+    public ResponseEntity<Map<String, String>> validate(@RequestParam("file") MultipartFile file) {
+        try {
+            return ResponseEntity.ok(zipService.validateZipContent(file));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/test-create")
+    public String testCreation() throws Exception {
+        // Dummy files for demonstration
+        File f1 = File.createTempFile("test", ".json");
+        Files.writeString(f1.toPath(), "{\"status\": \"ok\"}");
+
+        File apacheZip = zipService.createZipWithApache(Arrays.asList(f1));
+        File zip4jZip = zipService.createZipWithZip4j(Arrays.asList(f1));
+
+        return "Created Apache Zip: " + apacheZip.getAbsolutePath() +
+               "\nCreated Zip4j Zip: " + zip4jZip.getAbsolutePath();
+    }
+}
+
+############################################################
+
+To enforce a 25MB limit on your ZIP file uploads, you need to configure both the framework limits (which prevent large files from even hitting your controller) and a global exception handler (to return a clean JSON error message instead of a generic 500 error).
+
+1. Update application.properties
+Add these lines to your configuration. We set the limit to 25MB and adjust the max-swallow-size to prevent the server from cutting the connection before the error message is sent.
+
+Properties
+
+# Maximum size of a single file
+spring.servlet.multipart.max-file-size=25MB
+
+# Maximum total request size (files + form data)
+spring.servlet.multipart.max-request-size=25MB
+
+# Ensures Tomcat swallows the rest of the file so you can send a response
+server.tomcat.max-swallow-size=-1
+2. Global Exception Handler
+Spring throws a MaxUploadSizeExceededException when a file exceeds the limit. Without this handler, the client will get a messy "Connection Reset" or a default error page.
+
+Java
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, String>> handleMaxSizeException(MaxUploadSizeExceededException exc) {
+        Map<String, String> body = new HashMap<>();
+        body.put("error", "File too large!");
+        body.put("message", "The maximum allowed size is 25MB.");
+        body.put("details", exc.getMessage());
+
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(body);
+    }
+}
+3. Manual Controller Validation (Optional)
+If you want to perform manual checks inside your controller for more granular feedback, you can check the getSize() method on the MultipartFile.
+
+Java
+
+@PostMapping("/validate")
+public ResponseEntity<?> validate(@RequestParam("file") MultipartFile file) {
+    // Framework limit (25MB) is checked first, but you can do manual logic here
+    if (file.getSize() > 25 * 1024 * 1024) { // 25MB in bytes
+        return ResponseEntity.badRequest().body("File exceeds custom 25MB threshold.");
+    }
+
+    // Proceed with ZIP validation logic...
+    return ResponseEntity.ok(zipService.validateZipContent(file));
+}
+Updated Workflow
+Summary of Best Practices
+Property-level limits: Always set max-file-size to protect your server's memory and disk space.
+
+Max Swallow Size: Setting server.tomcat.max-swallow-size=-1 is critical for larger uploads; otherwise, the client might see a "Connection Reset" error before they even see your "25MB limit" message.
+
+Feedback: Using @ControllerAdvice ensures that your API remains user-friendly, providing a clear 413 Payload Too Large status code.
+
+Would you like me to show you how to implement streaming validation to avoid loading the entire 25MB file into RAM during processing?
+
+Handling File Upload Errors This video demonstrates how to properly catch and handle the MaxUploadSizeExceededException in Spring Boot to provide user-friendly feedback.
